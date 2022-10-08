@@ -1,3 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using Spectre.Console;
 
-Console.WriteLine("Hello, World!");
+FigletText titleProyect = new FigletText("Simulación Venta de Pasajes").LeftAligned().Color(Color.Blue);
+AnsiConsole.Write(titleProyect);
