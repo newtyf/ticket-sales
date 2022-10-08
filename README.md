@@ -1,4 +1,8 @@
-# proyecto-final
-simulacion de un servicio de ventas de pasajes
+# Venta de Pasajes
+ > El proyecto consiste en simular el proceso de un servicio de venta de pasajes para diferentes destinas segun el usuario lo requira.
 
-Equipo 6
+### Contribuidores
+- Marlon
+- Axel
+- Saul
+- Rodrigo
