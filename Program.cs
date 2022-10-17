@@ -9,8 +9,7 @@ AnsiConsole.Write(titleProyect);
 
 
 // get data boletos
-string pathData =
-    @"C:\Users\AXEL\Desktop\UNIVERSITY\UPN\C#\Fundamentos de Algoritmos\T4\SimulacionVentaPasajes\data_tickets.json";
+string pathData = Path.Combine(Directory.GetCurrentDirectory(), "data_tickets.json");
 StreamReader jsonStream = File.OpenText(pathData);
 var json = jsonStream.ReadToEnd();
 List<Boleto>? tickets = JsonConvert.DeserializeObject<List<Boleto>>(json);
