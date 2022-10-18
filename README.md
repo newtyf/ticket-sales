@@ -6,4 +6,6 @@
 - Axel
 - Saul
 - Rodrigo
+- Juan
+- Jesus
 #### *Equipo 6*
