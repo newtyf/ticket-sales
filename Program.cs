@@ -12,7 +12,7 @@ string pathData = Path.Combine(Directory.GetCurrentDirectory(), "data_tickets.js
 var jsonTickets = File.OpenText(pathData).ReadToEnd();
 List<Boleto>? tickets = JsonConvert.DeserializeObject<List<Boleto>>(jsonTickets);
 
-// filtros
+// applied filters
 var query =
     from ticket in tickets
     where (ticket.PlaceExit.Equals("Ucayali") && ticket.PlaceArrival.Equals("Lima"))
@@ -21,43 +21,46 @@ var enumerableTickets = query.ToList();
 
 // paint tickets
 int offset = 2;
-for (int i = 0; i < enumerableTickets.Count; i++)
+if (enumerableTickets.Count != 0)
 {
-    Boleto ticket = enumerableTickets[i];
-    if (i < offset)
+    for (int i = 0; i < enumerableTickets.Count; i++)
     {
-        string dataOfTicket = $"[yellow]id:[/] {ticket.Id}\n" +
-                              $"[deepskyblue3_1]Salida:[/] {ticket.DateOfExitArrival}\n" +
-                              $"[deepskyblue3_1]Hora salida:[/] {ticket.HourExit}\n" +
-                              $"[deepskyblue3_1]Hora llegada:[/] {ticket.HourArrival}\n" +
-                              $"[deepskyblue3_1]Lugar salida:[/] {ticket.PlaceExit}\n" +
-                              $"[deepskyblue3_1]Lugar llegada:[/] {ticket.PlaceArrival}\n" +
-                              $"[green]precio:[/] {ticket.Price}\n" +
-                              $"[deepskyblue3_1]empresa:[/] {ticket.Company}\n" +
-                              $"[deepskyblue3_1]asiento:[/] #{ticket.SeatNumber}";
+        Boleto ticket = enumerableTickets[i];
+        if (i < offset)
+        {
+            string dataOfTicket = $"[yellow]id:[/] {ticket.Id}\n" +
+                                  $"[deepskyblue3_1]Salida:[/] {ticket.DateOfExitArrival}\n" +
+                                  $"[deepskyblue3_1]Hora salida:[/] {ticket.HourExit}\n" +
+                                  $"[deepskyblue3_1]Hora llegada:[/] {ticket.HourArrival}\n" +
+                                  $"[deepskyblue3_1]Lugar salida:[/] {ticket.PlaceExit}\n" +
+                                  $"[deepskyblue3_1]Lugar llegada:[/] {ticket.PlaceArrival}\n" +
+                                  $"[green]precio:[/] {ticket.Price}\n" +
+                                  $"[deepskyblue3_1]empresa:[/] {ticket.Company}\n" +
+                                  $"[deepskyblue3_1]asiento:[/] #{ticket.SeatNumber}";
     
-        var panel = new Panel(dataOfTicket);
-        panel.Header = new PanelHeader("Boleto").SetAlignment(Justify.Center);
-        panel.Padding = new Padding(1, 1, 1, 1);
-        panel.Border = BoxBorder.Double;
-        AnsiConsole.Write(panel);
-    }
+            var panel = new Panel(dataOfTicket);
+            panel.Header = new PanelHeader("Boleto").SetAlignment(Justify.Center);
+            panel.Padding = new Padding(1, 1, 1, 1);
+            panel.Border = BoxBorder.Double;
+            AnsiConsole.Write(panel);
+        }
 
-    if (i == offset - 1)
-    {
-        var rule = new Rule($"Se esta mostrando [yellow]{offset}/{enumerableTickets.Count}[/]");
-        rule.LeftAligned();
-        AnsiConsole.Write(rule);
-        if (ShowMore())
+        if (i == offset - 1)
         {
-            offset += 2;
+            var rule = new Rule($"Se esta mostrando [yellow]{offset}/{enumerableTickets.Count}[/]");
+            rule.LeftAligned();
+            AnsiConsole.Write(rule);
+            if (ShowMore())
+            {
+                offset += 2;
+            }
+            else
+            {
+                break;
+            }
         }
-        else
-        {
-            break;
-        }
-    }
     
+    }
 }
 
 //select ticket
