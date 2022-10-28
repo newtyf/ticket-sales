@@ -7,6 +7,16 @@ FigletText titleProyect = new FigletText(fontTitle, "Venta de Pasajes").Centered
 AnsiConsole.Write(titleProyect);
 AnsiConsole.WriteLine();
 
+// get data tickets
+string pathData = Path.Combine(Directory.GetCurrentDirectory(), "data_tickets.json");
+var jsonTickets = File.OpenText(pathData).ReadToEnd();
+List<Ticket>? tickets = JsonConvert.DeserializeObject<List<Ticket>>(jsonTickets);
+
+// get data users
+string pathUsers = Path.Combine(Directory.GetCurrentDirectory(), "users.json");
+var jsonUsers = File.OpenText(pathUsers).ReadToEnd();
+List<User>? users = JsonConvert.DeserializeObject<List<User>>(jsonUsers);
+
 // TODO REQ_1: program description
 var descriptionTable = new Table().Centered();
 descriptionTable.AddColumn("Description");
@@ -19,9 +29,6 @@ var fontLogin = FigletFont.Load(Path.Combine(Directory.GetCurrentDirectory(), "s
 FigletText titleLogin = new FigletText(fontLogin, "Ingresar").Centered().Color(Color.Blue);
 AnsiConsole.Write(titleLogin);
 AnsiConsole.WriteLine();
-string pathUsers = Path.Combine(Directory.GetCurrentDirectory(), "users.json");
-var jsonUsers = File.OpenText(pathUsers).ReadToEnd();
-List<User>? users = JsonConvert.DeserializeObject<List<User>>(jsonUsers);
 while (true)
 {
     // input fields
@@ -52,23 +59,36 @@ FigletText titleWelcome = new FigletText(fontWelcome, "Bienvenido").Centered().C
 AnsiConsole.Write(titleWelcome);
 AnsiConsole.WriteLine();
 
-// TODO REQ_3: select filters
+// TODO REQ_3: get data user for ticket
+AnsiConsole.MarkupLine("[italic underline yellow]Datos para la compra de su boleto[/]\n");
+string nameForTicket = AnsiConsole.Ask<string>("Ingresa tu Nombre", "ejemplo: juanito");
+string lastNameForTicket = AnsiConsole.Ask<string>("Ingresa tus Apellidos", "ejemplo: gonzales");
+int ageForTicket = AnsiConsole.Prompt(new TextPrompt<int>("Ingresa tu edad: ")
+    .PromptStyle("green")
+    .ValidationErrorMessage("[red]El valor ingresado no es una edad valida[/]")
+    .Validate(age =>
+    {
+        return age switch
+        {
+            < 18 => ValidationResult.Error("[red]Debes ser mayor de edad para poder comprar un boleto![/]"),
+            >= 18 => ValidationResult.Success(),
+        };
+    }));
+int dniForTicket = AnsiConsole.Prompt(new TextPrompt<int>("Ingresa tu DNI: ")
+    .PromptStyle("green")
+    .ValidationErrorMessage("[red]El valor ingresado no es valido[/]")
+    .Validate(dni => dni.ToString().Length == 8
+        ? ValidationResult.Success()
+        : ValidationResult.Error("[red]El DNI ingresado no es valido[/]")));
+SeparatorRuler();
 
+// TODO REQ_4: select filters
+AnsiConsole.MarkupLine("[italic underline yellow]Filtros[/]\n");
+var enumerableTickets = TicketFiltered();
+SeparatorRuler();
 
-
-// get data tickets
-string pathData = Path.Combine(Directory.GetCurrentDirectory(), "data_tickets.json");
-var jsonTickets = File.OpenText(pathData).ReadToEnd();
-List<Ticket>? tickets = JsonConvert.DeserializeObject<List<Ticket>>(jsonTickets);
-
-// applied filters 
-var filterQuery =
-    from ticket in tickets
-    where ticket.PlaceExit.Equals("Ucayali") && ticket.PlaceArrival.Equals("Lima")
-    select ticket;
-var enumerableTickets = filterQuery.ToList();
-
-// paint tickets
+// TODO REQ_5: paint tickets
+AnsiConsole.MarkupLine("[italic underline yellow]Boletos Disponibles[/]\n");
 int offset = 2;
 if (enumerableTickets.Count != 0)
 {
@@ -147,6 +167,78 @@ int TicketSelect()
 
                 return ValidationResult.Error("[red]El ID ingresado no es valido![/]");
             }));
+}
+
+void SeparatorRuler(string color = "white")
+{
+    var separator = new Rule();
+    separator.RuleStyle($"{color} dim");
+    AnsiConsole.WriteLine();
+    AnsiConsole.Write(separator);
+    AnsiConsole.WriteLine();
+}
+
+string ChoicesPlaces(string title)
+{
+    string[] places =
+    {
+        "Amazonas", "Ancash", "Apurimac", "Arequipa", "Ayacucho", "Cajamarca", "Callao", "Cusco", "Huancavelica",
+        "Huánuco", "Ica", "Junín", "La Libertad", "Lambayeque", "Lima", "Loreto", "Madre de Dios", "Moquegua",
+        "Pasco"
+    };
+
+    return AnsiConsole.Prompt(
+        new SelectionPrompt<string>()
+            .Title(title)
+            .PageSize(10)
+            .MoreChoicesText("[grey](suba o baje para ver mas lugares)[/]")
+            .AddChoices(places)
+    );
+}
+
+string ChoicesCompany(string title)
+{
+    string[] companies =
+    {
+        "Cualquiera", "Oltursa", "Tepsa", "Cruz del Sur", "Civa", "MovilBus", "Wari", "Soyuz", "Shalom"
+    };
+
+    return AnsiConsole.Prompt(
+        new SelectionPrompt<string>()
+            .Title(title)
+            .PageSize(10)
+            .MoreChoicesText("[grey](suba o baje para ver mas lugares)[/]")
+            .AddChoices(companies)
+    );
+}
+
+List<Ticket> TicketFiltered()
+{
+    while (true)
+    {
+        var placeArrivalFilter = ChoicesPlaces("[blue]Seleccione el destino al que desea viajar:[/]");
+        AnsiConsole.MarkupLine($"Seleccione el destino al que desea viajar: [green]{placeArrivalFilter}[/]");
+        var placeExitFilter = ChoicesPlaces("[blue]Seleccione el lugar de salida para tomar su bus:[/]");
+        AnsiConsole.MarkupLine($"Seleccione el lugar de salida para tomar su bus: [green]{placeExitFilter}[/]");
+        var companiesFilter = ChoicesCompany("[blue]Seleccione la empresa con la que quiere viajar:[/]");
+        AnsiConsole.MarkupLine($"Seleccione la empresa con la que quiere viajar: [green]{companiesFilter}[/]");
+        // applied filters 
+        var filterQuery =
+            from ticket in tickets
+            where ticket.PlaceExit.Equals(placeExitFilter) && ticket.PlaceArrival.Equals(placeArrivalFilter)
+            select ticket;
+        var enumerable = filterQuery.ToList();
+        if (enumerable.Count == 0)
+        {
+            AnsiConsole.MarkupLine("[red]No se econtraron tickets disponibles[/]");
+            AnsiConsole.MarkupLine("[red]Vuelve a seleccionar los filtros[/]");
+            AnsiConsole.WriteLine();
+        }
+        else
+        {
+            return enumerable;
+        }
+    }
 }
 
 // structs
