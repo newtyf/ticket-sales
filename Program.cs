@@ -25,6 +25,8 @@ descriptionTable.AddRow(
 AnsiConsole.Write(descriptionTable);
 
 // TODO REQ_2: login user
+// Usuario : Axel
+// Contraseña: 123456
 var fontLogin = FigletFont.Load(Path.Combine(Directory.GetCurrentDirectory(), "small.flf"));
 FigletText titleLogin = new FigletText(fontLogin, "Ingresar").Centered().Color(Color.Blue);
 AnsiConsole.Write(titleLogin);
@@ -82,12 +84,12 @@ int dniForTicket = AnsiConsole.Prompt(new TextPrompt<int>("Ingresa tu DNI: ")
         : ValidationResult.Error("[red]El DNI ingresado no es valido[/]")));
 SeparatorRuler();
 
-// TODO REQ_4: select filters
+// TODO REQ_4,5: select filters
 AnsiConsole.MarkupLine("[italic underline yellow]Filtros[/]\n");
 var enumerableTickets = TicketFiltered();
 SeparatorRuler();
 
-// TODO REQ_5: paint tickets
+// TODO REQ_6: paint tickets
 AnsiConsole.MarkupLine("[italic underline yellow]Boletos Disponibles[/]\n");
 int offset = 2;
 if (enumerableTickets.Count != 0)
@@ -131,9 +133,46 @@ if (enumerableTickets.Count != 0)
     }
 }
 
-//select ticket
-int ticketSelect = TicketSelect();
-Console.WriteLine(ticketSelect);
+// TODO REQ_7,8: Ticket Selection
+int ticketSelect = 0;
+while (true)
+{
+    ticketSelect = TicketSelect();
+    if (Verification()) break;
+}
+SeparatorRuler();
+
+// TODO REQ_9: Pay method
+var payMethod = PayMethod();
+AnsiConsole.MarkupLine($"Método de pago seleccionado: [green]{payMethod}[/]");
+
+// TODO REQ_10:
+Console.Clear();
+var filterTicket =
+    from ticket in tickets
+    where ticket.Id.Equals(ticketSelect)
+    select ticket;
+var ticketInfo = filterTicket.ToList()[0];
+string finalInfo = $"[yellow]id:[/] {ticketInfo.Id}\n" +
+                   $"[deepskyblue3_1]Nombre:[/] {nameForTicket}\n" +
+                   $"[deepskyblue3_1]Apellido:[/] {lastNameForTicket}\n" +
+                   $"[deepskyblue3_1]Edad:[/] {ageForTicket}\n" +
+                   $"[deepskyblue3_1]DNI:[/] {dniForTicket}\n" +
+                   $"[deepskyblue3_1]Salida:[/] {ticketInfo.DateOfExitArrival}\n" +
+                   $"[deepskyblue3_1]Hora salida:[/] {ticketInfo.HourExit}\n" +
+                   $"[deepskyblue3_1]Hora llegada:[/] {ticketInfo.HourArrival}\n" +
+                   $"[deepskyblue3_1]Lugar salida:[/] {ticketInfo.PlaceExit}\n" +
+                   $"[deepskyblue3_1]Lugar llegada:[/] {ticketInfo.PlaceArrival}\n" +
+                   $"[deepskyblue3_1]Empresa:[/] {ticketInfo.Company}\n" +
+                   $"[deepskyblue3_1]Asiento:[/] #{ticketInfo.SeatNumber}\n" +
+                   $"[green]Método de Pago:[/] {payMethod}\n" +
+                   $"[green]Precio:[/] {ticketInfo.Price}";
+
+var ticketPanel = new Panel(finalInfo);
+ticketPanel.Header = new PanelHeader("Boleto").SetAlignment(Justify.Center);
+ticketPanel.Padding = new Padding(1, 1, 1, 1);
+ticketPanel.Border = BoxBorder.Double;
+AnsiConsole.Write(ticketPanel);
 Console.ReadLine();
 
 
@@ -167,6 +206,17 @@ int TicketSelect()
 
                 return ValidationResult.Error("[red]El ID ingresado no es valido![/]");
             }));
+}
+
+bool Verification()
+{
+    if (!AnsiConsole.Confirm("¿Está seguro de la selección de su boleto?"))
+    {
+        AnsiConsole.MarkupLine("[red]vuelva a ingresar el ID de su boleto[/]");
+        return false;
+    }
+
+    return true;
 }
 
 void SeparatorRuler(string color = "white")
@@ -209,6 +259,20 @@ string ChoicesCompany(string title)
             .PageSize(10)
             .MoreChoicesText("[grey](suba o baje para ver mas lugares)[/]")
             .AddChoices(companies)
+    );
+}
+
+string PayMethod()
+{
+    string[] payTypes =
+    {
+        "Tarjeta de Crédito/Débito", "Yape", "Plin", "Paypal", "Pago Efectivo"
+    };
+    return AnsiConsole.Prompt(
+        new SelectionPrompt<string>()
+            .Title("Escoga su método de pago:")
+            .PageSize(10)
+            .AddChoices(payTypes)
     );
 }
 
